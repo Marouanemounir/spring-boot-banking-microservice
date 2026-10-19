@@ -1,0 +1,24 @@
+info:
+  name: 02 - Create Compte
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8080/api/comptes
+  body:
+    type: json
+    data: |
+      
+      {
+        "solde": 12500.0,
+        "type": "EPARGNE"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
