@@ -4,6 +4,12 @@ package com.example.banking.web;
 import com.example.banking.entities.Compte;
 import com.example.banking.repositories.CompteRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -17,21 +23,54 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/comptes")
 @RequiredArgsConstructor
+@Tag(
+        name = "Gestion des comptes bancaires",
+        description = "Operations CRUD sur les comptes bancaires"
+)
 public class CompteRestController {
 
     private final CompteRepository compteRepository;
 
-    // 1. GET : Recuperer tous les comptes
+    // ==============================
+    // GET : Tous les comptes
+    // ==============================
+
+    @Operation(
+            summary = "Lister tous les comptes",
+            description = "Retourne la liste des comptes bancaires"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Liste des comptes recuperee"
+    )
     @GetMapping
     public List<Compte> getAllComptes() {
         return compteRepository.findAll();
     }
 
-    // 2. GET : Recuperer un compte par son ID
+    // ==============================
+    // GET : Compte par ID
+    // ==============================
+
+    @Operation(
+            summary = "Rechercher un compte",
+            description = "Recherche un compte bancaire par ID"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Compte trouve"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Compte introuvable"
+            )
+    })
     @GetMapping("/{id}")
     public ResponseEntity<Compte> getCompteById(
-            @PathVariable String id) {
-
+            @Parameter(description = "Identifiant du compte")
+            @PathVariable String id
+    ) {
         return compteRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() ->
@@ -39,18 +78,25 @@ public class CompteRestController {
                 );
     }
 
-    // 3. POST : Creer un nouveau compte
+    // ==============================
+    // POST : Creation
+    // ==============================
+
+    @Operation(
+            summary = "Creer un compte",
+            description = "Cree un nouveau compte bancaire"
+    )
+    @ApiResponse(
+            responseCode = "201",
+            description = "Compte cree avec succes"
+    )
     @PostMapping
     public ResponseEntity<Compte> createCompte(
-            @RequestBody Compte compte) {
-
-        // Generer un identifiant unique
+            @RequestBody Compte compte
+    ) {
         compte.setId(UUID.randomUUID().toString());
-
-        // Initialiser la date de creation
         compte.setDateCreation(new Date());
 
-        // Enregistrer dans H2
         Compte savedCompte = compteRepository.save(compte);
 
         return ResponseEntity
@@ -58,12 +104,30 @@ public class CompteRestController {
                 .body(savedCompte);
     }
 
-    // 4. PUT : Modifier un compte existant
+    // ==============================
+    // PUT : Modification
+    // ==============================
+
+    @Operation(
+            summary = "Modifier un compte",
+            description = "Modifie le solde et le type d'un compte"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Compte modifie"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Compte introuvable"
+            )
+    })
     @PutMapping("/{id}")
     public ResponseEntity<Compte> updateCompte(
+            @Parameter(description = "ID du compte a modifier")
             @PathVariable String id,
-            @RequestBody Compte updatedCompte) {
-
+            @RequestBody Compte updatedCompte
+    ) {
         return compteRepository.findById(id)
                 .map(compte -> {
 
@@ -80,11 +144,29 @@ public class CompteRestController {
                 );
     }
 
-    // 5. DELETE : Supprimer un compte
+    // ==============================
+    // DELETE : Suppression
+    // ==============================
+
+    @Operation(
+            summary = "Supprimer un compte",
+            description = "Supprime un compte bancaire par ID"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Compte supprime"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Compte introuvable"
+            )
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCompte(
-            @PathVariable String id) {
-
+            @Parameter(description = "ID du compte a supprimer")
+            @PathVariable String id
+    ) {
         if (!compteRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
